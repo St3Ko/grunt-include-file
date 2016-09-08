@@ -9,20 +9,42 @@
 'use strict';
 module.exports = function (grunt) {
 	grunt.registerMultiTask('include_file','Include files.',function () {
-		var fs = require('fs')
-			,sCwd = this.data.cwd||''
-			,sDest = this.data.dest
-			,iNumFiles = 0
+			var fs = require('fs')
+			,sCwd
+			,sDest
+			,iNumFiles
 			//
 			,rxMatchCommentJsG		= /\/\*!?\s?include(\s\-\w+)?\s+[^\s]*\s?\*\//g
 			,rxMatchCommentJs		= /(\/\*!?\s?include(\s\-\w+)?\s+)([^\s]*)\s?\*\//
 			,rxMatchCommentHtmlG	= /(<!--\s?include(\s\-\w+)?\s+)([^\s]*)\s?-->/g
 			,rxMatchCommentHtml		= /(<!--\s?include(\s\-\w+)?\s+)([^\s]*)\s?-->/
 		;
-		this.data.src.forEach(function(src){
-			grunt.log.writeln(' ',sCwd+src); // log
-			grunt.file.write(sDest+src,includeInto(sCwd+src));
-		});
+		if(typeof(this.data.src) === 'undefined'){
+			var src;
+			var srcEx;
+			iNumFiles = 0;
+
+			this.files.forEach(function(file){
+				sCwd = file.orig.cwd||'';
+				sDest = file.orig.dest;
+				src = file.dest.match(/\w*(?=\.)/);
+				srcEx = file.dest.match(/\.\w*/);
+
+				grunt.log.writeln(' ',sCwd+src[0]+srcEx[0]); // log
+				grunt.file.write(sDest+src[0]+srcEx[0],includeInto(sCwd+src[0]+srcEx[0]));
+			});
+
+
+		} else {
+			sCwd = this.data.cwd||'';
+			sDest = this.data.dest;
+			iNumFiles = 0;
+
+			this.data.src.forEach(function(src){
+				grunt.log.writeln(' ',sCwd+src); // log
+				grunt.file.write(sDest+src,includeInto(sCwd+src));
+			});
+		}
 		function includeInto(file,depth){
 			if (depth===undefined) depth = 0;
 			else depth++;
